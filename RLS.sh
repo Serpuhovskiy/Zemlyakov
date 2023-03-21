@@ -31,7 +31,7 @@ fi
 # read -p "Введите угол азимута (θ):" theta
 
 rls_coords="8000000,7000000"
-point_coords="9000000,5000000"
+point_coords="9000000,6000000"
 R=4000000
 alpha=200
 theta=45
