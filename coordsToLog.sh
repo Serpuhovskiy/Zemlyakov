@@ -7,9 +7,12 @@ log_file="log.txt"
 
 while :
 do
+    # list_targets=`ls /tmp/GenTargets/Targets/ -t 2>/dev/null | head -5`
     # Находим все файлы в /tmp/GenTargets/Targets и пробегаемся по каждому в цикле
-    find /tmp/GenTargets/Targets -type f -maxdepth 1 | sort -n | tail -30 | while read file; do
-        
+#    find . -type f -printf '%T@ %p\n' | sort -n | cut -d' ' -f2- | tail -n 5 | while read file; do
+
+    files=$(find /tmp/GenTargets/Targets/ -type f -printf '%T@ %p\n' | sort -n | cut -d' ' -f2- | tail -n 30)
+    for file in $files; do    
         # Определяем id цели (6 последних символов имени файла)
         target_id=${file: -6}
 
