@@ -27,11 +27,11 @@ else
 fi
 }
 
-rls_x=3100000
-rls_y=3800000
+rls_x=8000000
+rls_y=7000000
 R=4000000
 alpha=200
-theta=135
+theta=45
 
 target_id=$1
 point_x=$2
@@ -39,13 +39,16 @@ point_y=$3
 
 
 function writeToLog {
+    echo "================================================================="
+    echo "================================================================="
+    echo "================================================================="
     # Считаем количество записей цели с target_id в файле лога
     count_of_targets=`grep -c "$target_id" $log_file`
 
     # Если количество = 0, значит такой цели еще не было обнаружено (ПЕРВАЯ ЗАСЕЧКА)
     if [[ $count_of_targets -eq 0 ]]
     then    
-        echo "$date RLS_1: Обнаружена цель ID:$target_id с координатами $x $y первая засечка" >> "$log_file"
+        echo "$date RLS_2: Обнаружена цель ID:$target_id с координатами $x $y первая засечка" >> "$log_file"
 
     # Если количество = 1, значит первая засечка уже была, записываем вторую (ВТОРАЯ ЗАСЕЧКА)
     elif [[ $count_of_targets -eq 1 ]]
@@ -55,16 +58,17 @@ function writeToLog {
         y_1=$(echo "$first_serif" | cut -d ' ' -f 9)
 
         if [ $x_1 != $x ] && [ $y_1 != $y ]; then
-            echo "$date RLS_1: Обнаружена цель ID:$target_id с координатами $x $y вторая засечка" >> "$log_file"
+            echo "$date RLS_2: Обнаружена цель ID:$target_id с координатами $x $y вторая засечка" >> "$log_file"
             speed=$(echo "sqrt(($x-$x_1)^2+($y-$y_1)^2)" | bc)
             echo -e "\e[33m    ID: $target_id СКОРОСТЬ == $speed  координаты: ($x_1, $y_1), ($x, $y)   \e[0m"
-            source ./movementToSPRO.sh $target_id $x_1 $y_1 $x $y "RLS_1"
+            source ./movementToSPRO.sh $target_id $x_1 $y_1 $x $y "RLS_2"
         fi
     # Если количество > 1, значит две засечки уже было
     else
         echo "Цель $target_id больше не записывается"
     fi 
 }
+
 
 # Вычисляем расстояние от РЛС до точки
 distance=$(echo "sqrt(($point_x-$rls_x)^2+($point_y-$rls_y)^2)" | bc)
@@ -86,10 +90,10 @@ fi
 
 # Проверяем, лежит ли точка в секторе обзора
 if (( $(echo "$distance <= $R" | bc -l) )) && (( $(echo "$azimuth >= $theta-$alpha/2" | bc -l) )) && (( $(echo "$azimuth <= $theta+$alpha/2" | bc -l) )); then
-echo -e "\e[32m   Точка ($point_x, $point_y) лежит в зоне обзора РЛС_1   \e[0m"
+echo -e "\e[32m   Точка ($point_x, $point_y) лежит в зоне обзора РЛС_2   \e[0m"
 writeToLog
 else
-echo "Точка ($point_x, $point_y) не лежит в зоне обзора РЛС_1"
+echo "Точка ($point_x, $point_y) не лежит в зоне обзора РЛС_2"
 fi
 
 

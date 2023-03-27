@@ -25,6 +25,7 @@ c=$((x2 * y1 - x1 * y2))
 # Вычисляем расстояние от центра СПРО до каждой точки
 distance2=$(echo "sqrt(($x2-$xc)^2+($y2-$yc)^2)" | bc)
 distance1=$(echo "sqrt(($x1-$xc)^2+($y1-$yc)^2)" | bc)
+speed=$(echo "sqrt(($x2-$x1)^2+($y2-$y1)^2)" | bc)
 
 # Найдем расстояние от центра окружности до прямой
 expr=$(echo "sqrt(($a * $xc + $b * $yc + $c)^2)" | bc)
@@ -33,7 +34,7 @@ d=$(echo "scale=6; $expr / $expr1" | bc -l)
 
 # Проверим, пересекает ли прямая окружность
 if [ $(echo "$d <= $R" | bc -l) -eq 1 ]; then
-    if [ $distance2 -lt $distance1 ]; then
+    if [ $distance2 -lt $distance1 ] && [ $speed -ge 8000 ]; then
         echo "$date $6: Цель ID:$target_id движется в направлении СПРО" >> "$log_file"
         echo -e "\e[31m Объект движется в направлении СПРО \e[0m"
     else
