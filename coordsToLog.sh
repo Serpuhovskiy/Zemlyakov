@@ -28,6 +28,8 @@ do
         source ./RLS_1.sh $target_id $x $y &
         # Передаем координаты первой РЛС
         source ./RLS_2.sh $target_id $x $y &
+        # Передаем координаты СПРО
+        source ./SPRO.sh $target_id $x $y &
 
     done
     echo "Пауза 2,5 секунды..."

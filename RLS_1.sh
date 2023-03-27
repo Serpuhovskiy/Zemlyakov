@@ -40,7 +40,7 @@ point_y=$3
 
 function writeToLog {
     # Считаем количество записей цели с target_id в файле лога
-    count_of_targets=`grep -c "$target_id" $log_file`
+    count_of_targets=`grep -c "^.*RLS_1.*$target_id" $log_file`
 
     # Если количество = 0, значит такой цели еще не было обнаружено (ПЕРВАЯ ЗАСЕЧКА)
     if [[ $count_of_targets -eq 0 ]]
@@ -50,7 +50,7 @@ function writeToLog {
     # Если количество = 1, значит первая засечка уже была, записываем вторую (ВТОРАЯ ЗАСЕЧКА)
     elif [[ $count_of_targets -eq 1 ]]
     then
-        first_serif=`grep -E "$target_id.*первая засечка$" $log_file`
+        first_serif=`grep -E "^.*RLS_1.*$target_id.*первая засечка$" $log_file`
         x_1=$(echo "$first_serif" | cut -d ' ' -f 8)
         y_1=$(echo "$first_serif" | cut -d ' ' -f 9)
 

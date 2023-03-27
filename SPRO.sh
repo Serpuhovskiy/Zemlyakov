@@ -1,74 +1,56 @@
 #!/bin/bash
 
+echo "+++++++++++++++++++++++++++++++++++++++++++++++"
+echo "+++++++++++++++++++++++++++++++++++++++++++++++"
+
 pi=3.14159265359
+log_file="log.txt"
+date=`date +"%T"`
 
-# Функция арктангенса от двух параметров
-function atan2 {
-local y="$1"
-local x="$2"
-
-if (( x > 0 )); then
-    echo "scale=10; a($y/$x)" | bc -l
-elif (( x < 0 )) && (( y >= 0 )); then
-    echo "scale=10; a($y/$x)+3.1415926535" | bc -l
-elif (( x < 0 )) && (( y < 0 )); then
-    echo "scale=10; a($y/$x)-3.1415926535" | bc -l
-elif (( x == 0 )) && (( y > 0 )); then
-    echo "scale=10; 1.5707963268" | bc -l
-elif (( x == 0 )) && (( y < 0 )); then
-    echo "scale=10; -1.5707963268" | bc -l
-else
-    echo "scale=10; 0" | bc -l
-fi
-}
+# Координаты СПРО
+spro_x=2600000
+spro_y=2800000
+R=1700000
+target_id=$1
+x=$2
+y=$3
 
 
-# Получаем координаты РЛС и точки для проверки
-# read -p "Введите координаты РЛС (в формате x,y):" rls_coords
-# read -p "Введите координаты точки (в формате x,y):" point_coords
-# read -p "Введите радиус сектора обзора (R):" R
-# read -p "Введите угол обзора (α):" alpha
-# read -p "Введите угол азимута (θ):" theta
+# Вычисляем расстояние от СПРО до точки
+distance=$(echo "sqrt(($spro_x-$x)^2+($spro_y-$y)^2)" | bc)
 
-rls_coords="8000000,7000000"
-point_coords="9000000,5000000"
-R=4000000
-alpha=200
-theta=45
+# Проверяем, лежит ли точка в зоне обзора СПРО
+if (( $(echo "$distance <= $R" | bc -l) )); then
+echo -e "\e[32m   Точка ($x, $y) лежит в зоне обзора СПРО   \e[0m"
 
-# Разделяем координаты РЛС и точки на отдельные переменные
-rls_x=$(echo $rls_coords | cut -d',' -f1)
-rls_y=$(echo $rls_coords | cut -d',' -f2)
-point_x=$(echo $point_coords | cut -d',' -f1)
-point_y=$(echo $point_coords | cut -d',' -f2)
+    count_of_targets=`grep -c "^.*SPRO.*$target_id" $log_file`
 
-# Вычисляем расстояние от РЛС до точки
-distance=$(echo "sqrt(($point_x-$rls_x)^2+($point_y-$rls_y)^2)" | bc)
-echo "$distance"
+    # Если количество = 0, значит такой цели еще не было обнаружено (ПЕРВАЯ ЗАСЕЧКА)
+    if [[ $count_of_targets -eq 0 ]]
+    then    
+        echo "$date SPRO: Обнаружена цель ID:$target_id с координатами $x $y первая засечка" >> "$log_file"
 
-# Вычисляем азимут между точкой и РЛС
-azimuth=$(echo $(atan2 $(( point_y-rls_y )) $(( point_x-rls_x ))))
-echo "азимут в радианах $azimuth"
-# Переводим в градусы
-azimuth=$(echo "$(echo "$azimuth*180/$pi" | bc -l)")
-echo "азимут в градусах $azimuth"
+    # Если количество = 1, значит первая засечка уже была, записываем вторую (ВТОРАЯ ЗАСЕЧКА)
+    elif [[ $count_of_targets -eq 1 ]]
+    then
+        first_serif=`grep -E "^.*SPRO.*$target_id.*первая засечка$" $log_file`
+        x_1=$(echo "$first_serif" | cut -d ' ' -f 8)
+        y_1=$(echo "$first_serif" | cut -d ' ' -f 9)
 
-# Переходим к азимуту от севера
-azimuth=$(echo "90 - $azimuth" | bc)
-azimuth_rounded=$(echo "scale=8; $azimuth" | bc)
-echo "azimuth_rounded $azimuth_rounded"
-
-if [[ $(echo "$azimuth_rounded < 0" | bc) -eq 1 ]]; then
-echo "AZIMUTH < 0"
-azimuth=$(echo "$azimuth_rounded + 360" | bc)
-echo "new azimuth $azimuth"
-else
-echo "AZIMUTH >= 0"
-fi
-
-# Проверяем, лежит ли точка в секторе обзора
-if (( $(echo "$distance <= $R" | bc -l) )) && (( $(echo "$azimuth >= $theta-$alpha/2" | bc -l) )) && (( $(echo "$azimuth <= $theta+$alpha/2" | bc -l) )); then
-echo "Лежит"
+        if [ $x_1 != $x ] && [ $y_1 != $y ]; then
+            echo "$date SPRO: Обнаружена цель ID:$target_id с координатами $x $y вторая засечка" >> "$log_file"
+            speed=$(echo "sqrt(($x-$x_1)^2+($y-$y_1)^2)" | bc)
+            if [ $speed -ge 8000 ]; then
+                echo "ЭТО ББ БР"
+                source ./destroy.sh $target_id &
+            fi
+        fi
+    # Если количество > 1, значит две засечки уже было
+    else
+        echo "Цель с ID:$target_id не была уничтожена предыдущими попытками"
+        echo "Пробуем уничтожить цель с ID:$target_id еще раз"
+        source ./destroy.sh $target_id &
+    fi 
 else
 echo "Не лежит"
 fi
