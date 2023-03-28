@@ -2,18 +2,29 @@ gnome-terminal -e "./GenTargets.sh"
 sleep 1
 # Определяем имя файла, в который будем записывать результаты
 log_file="log.txt"
+current_targets_file="currentTargets.txt"
+maybeDestroyed="maybeDestroyedTargets.txt"
+> "$maybeDestroyed"
 
 # Создаем файл или очищаем его, если он уже существует
 > "$log_file"
 
 
+
 while :
 do
     # Находим все файлы в /tmp/GenTargets/Targets и пробегаемся по каждому в цикле
+    filesNamesForLog=$(find /tmp/GenTargets/Targets/ -type f -printf '%T@ %p\n' | sort -n | cut -d '/' -f5- | tail -n 30)
+    > "$current_targets_file"
+    echo "$filesNamesForLog" >> "$current_targets_file"
     files=$(find /tmp/GenTargets/Targets/ -type f -printf '%T@ %p\n' | sort -n | cut -d' ' -f2- | tail -n 30)
-    for file in $files; do    
+    for file in $files; do  
+        echo "INSIDE"  
         # Определяем id цели (6 последних символов имени файла)
         target_id=${file: -6}
+
+        # isTargetFired=`grep -c "^Стрельба по цели $target_id$" $ids_log_file`
+        # echo "$target_id" >> "$ids_log_file"
         echo "FILENAME: $file"
 
         # Извлекаем строку с координатами из файла
