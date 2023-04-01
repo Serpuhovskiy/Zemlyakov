@@ -1,10 +1,11 @@
 log_file="log.txt"
-maybeDestroyed="maybeDestroyedTargets.txt"
-# > "$maybeDestroyed"
 date=`date +"%T"`
+system=$2
+maybeDestroyed="maybeDestroyedTargets_$system.txt"
+> "$maybeDestroyed"
 
 dirname="/tmp/GenTargets/Destroy"
-echo "Стрельба по цели с ID:$1"
-echo "$date SPRO: Стрельба по цели с ID:$1" >> "$log_file"
-echo "$1" >> "$maybeDestroyed"
+echo "$system Стрельба по цели с ID:$1"
+echo "$date $system: Стрельба по цели с ID:$1" >> "$log_file"
+echo -e "$1" >> "$maybeDestroyed"
 touch "$dirname/$1"

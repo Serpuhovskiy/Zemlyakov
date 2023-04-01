@@ -1,31 +1,44 @@
 #!/bin/bash
 
-echo "+++++++++++++++++++++++++++++++++++++++++++++++"
-echo "+++++++++++++++++++++++++++++++++++++++++++++++"
-
 pi=3.14159265359
 log_file="log.txt"
 date=`date +"%T"`
+maybeDestroyed="maybeDestroyedTargets_SPRO.txt"
 
-# Координаты СПРО
+
+# =================== Координаты СПРО ===========================
 spro_x=2600000
 spro_y=2800000
 R=1700000
 target_id=$1
 x=$2
 y=$3
-
-# Убираем дубли в файле с потенциально уничтоженными целями, оставляя порядок файлов
-awk '!a[$0]++' maybeDestroyedTargets.txt > tmp.txt
-mv tmp.txt maybeDestroyedTargets.txt
+# ================================================================
 
 
-cat maybeDestroyedTargets.txt | while read line; do
-#   echo $line
-isMaybeDestroyedInCurrent=`grep -c "$line" "currentTargets.txt"`
-if [[ $isMaybeDestroyedInCurrent -eq 0 ]]; then
-    echo -e "\033[32m          Цель $line была уничтожена на предыдущем шаге           \033[0m"
+# Убираем дубли в файле с потенциально уничтоженными целями, оставляя порядок строк
+awk '!a[$0]++' "$maybeDestroyed" > "tmp.txt"
+if [ -f "./tmp.txt" ]; then
+    mv "tmp.txt" "$maybeDestroyed"
 fi
+
+# Функция удаления строки с определенной подстрокой из файла
+function removeString {
+local substring="$1"
+local file="$2"
+
+grep -v "$substring" "$file" > "tmp1.txt"
+mv "tmp1.txt" "$file"
+}
+
+# Проверяем, была ли уничтожена цель
+cat "$maybeDestroyed" | while read line; do
+    isMaybeDestroyedInCurrent=`grep -c "$line" "currentTargets.txt"`
+    if [ $isMaybeDestroyedInCurrent -eq 0 ]; then
+        removeString "$line" "$maybeDestroyed"
+        echo -e "\033[32m          Цель $line была уничтожена на предыдущем шаге           \033[0m"
+
+    fi
 done
 
 # Вычисляем расстояние от СПРО до точки
@@ -33,18 +46,20 @@ distance=$(echo "sqrt(($spro_x-$x)^2+($spro_y-$y)^2)" | bc)
 
 # Проверяем, лежит ли точка в зоне обзора СПРО
 if (( $(echo "$distance <= $R" | bc -l) )); then
-echo -e "\e[32m   Точка ($x, $y) лежит в зоне обзора СПРО   \e[0m"
+    echo -e "\e[32mSPRO:   Точка $target_id ($x, $y) лежит в зоне обзора СПРО   \e[0m"
 
-    count_of_targets=`grep -c "^.*SPRO.*$target_id.*засечка$" $log_file`
-    echo "КОЛИЧЕСТВО ЗАПИСЕЙ $target_id: $count_of_targets"
+    # Считаем количество засечек в логе
+    count_of_serifs=`grep -c "^.*SPRO.*$target_id.*засечка$" $log_file`
+
     # Если количество = 0, значит такой цели еще не было обнаружено (ПЕРВАЯ ЗАСЕЧКА)
-    if [[ $count_of_targets -eq 0 ]]
+    if [[ $count_of_serifs -eq 0 ]]
     then    
         echo "$date SPRO: Обнаружена цель ID:$target_id с координатами $x $y первая засечка" >> "$log_file"
 
     # Если количество = 1, значит первая засечка уже была, записываем вторую (ВТОРАЯ ЗАСЕЧКА)
-    elif [[ $count_of_targets -eq 1 ]]
+    elif [[ $count_of_serifs -eq 1 ]]
     then
+        # Ищем координаты первой засечки
         first_serif=`grep -E "^.*SPRO.*$target_id.*первая засечка$" $log_file`
         x_1=$(echo "$first_serif" | cut -d ' ' -f 8)
         y_1=$(echo "$first_serif" | cut -d ' ' -f 9)
@@ -53,18 +68,17 @@ echo -e "\e[32m   Точка ($x, $y) лежит в зоне обзора СПР
             speed=$(echo "sqrt(($x-$x_1)^2+($y-$y_1)^2)" | bc)
             if [ $speed -ge 8000 ]; then
                 echo "$date SPRO: Обнаружена цель ID:$target_id с координатами $x $y вторая засечка" >> "$log_file"
-                echo "СКОРОСТЬ СБИВАЕМОГО ОБЪЕКТА $target_id: $speed"
-                echo "$target_id: ЭТО ББ БР"
-                source ./destroy.sh $target_id &
+                source ./destroy.sh $target_id "SPRO" &
+            else
+                removeString "$first_serif" "$log_file"
             fi
         fi
+
     # Если количество > 1, значит две засечки уже было
     else
-        echo "Цель с ID:$target_id не была уничтожена предыдущими попытками"
+        echo "\e[32mSPRO:     Цель с ID:$target_id не была уничтожена предыдущими попытками   \e[0m"
         echo "$date SPRO: Стрельба по цели с ID:$target_id ПРОМАХ!" >> "$log_file"
-        echo "Пробуем уничтожить цель с ID:$target_id еще раз"
-        source ./destroy.sh $target_id &
+        echo "\e[32mSPRO:     Пробуем уничтожить цель с ID:$target_id еще раз      \e[0m"
+        source ./destroy.sh $target_id "SPRO" &
     fi 
-else
-echo "Не лежит"
 fi
