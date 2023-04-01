@@ -15,6 +15,18 @@ target_id=$1
 x=$2
 y=$3
 
+# Убираем дубли в файле с потенциально уничтоженными целями, оставляя порядок файлов
+awk '!a[$0]++' maybeDestroyedTargets.txt > tmp.txt
+mv tmp.txt maybeDestroyedTargets.txt
+
+
+cat maybeDestroyedTargets.txt | while read line; do
+#   echo $line
+isMaybeDestroyedInCurrent=`grep -c "$line" "currentTargets.txt"`
+if [[ $isMaybeDestroyedInCurrent -eq 0 ]]; then
+    echo -e "\033[32m          Цель $line была уничтожена на предыдущем шаге           \033[0m"
+fi
+done
 
 # Вычисляем расстояние от СПРО до точки
 distance=$(echo "sqrt(($spro_x-$x)^2+($spro_y-$y)^2)" | bc)
@@ -38,11 +50,11 @@ echo -e "\e[32m   Точка ($x, $y) лежит в зоне обзора СПР
         y_1=$(echo "$first_serif" | cut -d ' ' -f 9)
 
         if [ $x_1 != $x ] && [ $y_1 != $y ]; then
-            echo "$date SPRO: Обнаружена цель ID:$target_id с координатами $x $y вторая засечка" >> "$log_file"
             speed=$(echo "sqrt(($x-$x_1)^2+($y-$y_1)^2)" | bc)
             if [ $speed -ge 8000 ]; then
+                echo "$date SPRO: Обнаружена цель ID:$target_id с координатами $x $y вторая засечка" >> "$log_file"
                 echo "СКОРОСТЬ СБИВАЕМОГО ОБЪЕКТА $target_id: $speed"
-                echo "ЭТО ББ БР"
+                echo "$target_id: ЭТО ББ БР"
                 source ./destroy.sh $target_id &
             fi
         fi

@@ -57,14 +57,19 @@ function writeToLog {
         if [ $x_1 != $x ] && [ $y_1 != $y ]; then
             echo "$date RLS_1: Обнаружена цель ID:$target_id с координатами $x $y вторая засечка" >> "$log_file"
             speed=$(echo "sqrt(($x-$x_1)^2+($y-$y_1)^2)" | bc)
-            echo -e "\e[33m    ID: $target_id СКОРОСТЬ == $speed  координаты: ($x_1, $y_1), ($x, $y)   \e[0m"
-            source ./movementToSPRO.sh $target_id $x_1 $y_1 $x $y "RLS_1"
+            
+            # Проверяем на скорость
+            if [ $speed -ge 8000 ]; then
+                echo -e "\e[33m    ID: $target_id СКОРОСТЬ == $speed  координаты: ($x_1, $y_1), ($x, $y)   \e[0m"
+                source ./movementToSPRO.sh $target_id $x_1 $y_1 $x $y "RLS_1"
+            fi
         fi
     # Если количество > 1, значит две засечки уже было
     else
         echo "Цель $target_id больше не записывается"
     fi 
 }
+
 
 # Вычисляем расстояние от РЛС до точки
 distance=$(echo "sqrt(($point_x-$rls_x)^2+($point_y-$rls_y)^2)" | bc)

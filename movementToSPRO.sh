@@ -36,7 +36,7 @@ d=$(echo "scale=6; $expr / $expr1" | bc -l)
 if [ $(echo "$d <= $R" | bc -l) -eq 1 ]; then
     if [ $distance2 -lt $distance1 ] && [ $speed -ge 8000 ]; then
         echo "$date $6: Цель ID:$target_id движется в направлении СПРО" >> "$log_file"
-        echo -e "\e[31m Объект движется в направлении СПРО \e[0m"
+        echo -e "\e[31m Объект $1 движется в направлении СПРО \e[0m"
     else
         echo "Объект движется от СПРО"
     fi
