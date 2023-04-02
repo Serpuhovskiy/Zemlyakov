@@ -2,6 +2,7 @@
 
 pi=3.14159265359
 log_file="log.txt"
+main_log="mainLog.txt"
 date=`date +"%T"`
 maybeDestroyed="maybeDestroyedTargets_SPRO.txt"
 
@@ -15,20 +16,13 @@ x=$2
 y=$3
 # ================================================================
 
-
-# Убираем дубли в файле с потенциально уничтоженными целями, оставляя порядок строк
-awk '!a[$0]++' "$maybeDestroyed" > "tmp.txt"
-if [ -f "./tmp.txt" ]; then
-    mv "tmp.txt" "$maybeDestroyed"
-fi
-
 # Функция удаления строки с определенной подстрокой из файла
 function removeString {
-local substring="$1"
-local file="$2"
+    local substring="$1"
+    local file="$2"
 
-grep -v "$substring" "$file" > "tmp1.txt"
-mv "tmp1.txt" "$file"
+    grep -v "$substring" "$file" > "temp/tmp1.txt"
+    mv "temp/tmp1.txt" "$file"
 }
 
 # Проверяем, была ли уничтожена цель
@@ -37,7 +31,8 @@ cat "$maybeDestroyed" | while read line; do
     if [ $isMaybeDestroyedInCurrent -eq 0 ]; then
         removeString "$line" "$maybeDestroyed"
         echo -e "\033[32m          Цель $line была уничтожена на предыдущем шаге           \033[0m"
-
+        echo "$date SPRO: Цель ID:$target_id УНИЧТОЖЕНА"
+        echo "$date SPRO: Цель ID:$line УНИЧТОЖЕНА" >> "$main_log"
     fi
 done
 
@@ -68,6 +63,8 @@ if (( $(echo "$distance <= $R" | bc -l) )); then
             speed=$(echo "sqrt(($x-$x_1)^2+($y-$y_1)^2)" | bc)
             if [ $speed -ge 8000 ]; then
                 echo "$date SPRO: Обнаружена цель ID:$target_id с координатами $x $y вторая засечка" >> "$log_file"
+                echo "$date SPRO: Обнаружена цель (ББ БР) ID:$target_id с координатами $x $y" >> "$main_log"
+                echo "$date SPRO: Производится стрельба по цели ID:$target_id" >> "$main_log"
                 source ./destroy.sh $target_id "SPRO" &
             else
                 removeString "$first_serif" "$log_file"
@@ -76,9 +73,12 @@ if (( $(echo "$distance <= $R" | bc -l) )); then
 
     # Если количество > 1, значит две засечки уже было
     else
-        echo "\e[32mSPRO:     Цель с ID:$target_id не была уничтожена предыдущими попытками   \e[0m"
+        echo -e "\e[32mSPRO:     Цель с ID:$target_id не была уничтожена предыдущими попытками   \e[0m"
         echo "$date SPRO: Стрельба по цели с ID:$target_id ПРОМАХ!" >> "$log_file"
-        echo "\e[32mSPRO:     Пробуем уничтожить цель с ID:$target_id еще раз      \e[0m"
+        echo "$date SPRO: Стрельба по цели ID:$target_id ПРОМАХ!" >> "$main_log"
+        echo -e "\e[32mSPRO:     Пробуем уничтожить цель с ID:$target_id еще раз      \e[0m"
+        
+        echo "$date SPRO: Повторная стрельба по цели ID:$target_id" >> "$main_log"
         source ./destroy.sh $target_id "SPRO" &
     fi 
 fi

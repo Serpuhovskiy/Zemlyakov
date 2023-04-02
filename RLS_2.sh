@@ -2,7 +2,7 @@
 
 # Определяем имя файла, в который будем записывать результаты
 log_file="log.txt"
-
+main_log="mainLog.txt"
 date=`date +"%T"`
 
 pi=3.14159265359
@@ -60,20 +60,16 @@ function writeToLog {
             
             # Проверяем на скорость
             if [ $speed -ge 8000 ]; then
-                # echo -e "\e[33m    ID: $target_id СКОРОСТЬ == $speed  координаты: ($x_1, $y_1), ($x, $y)   \e[0m"
-                source ./movementToSPRO.sh $target_id $x_1 $y_1 $x $y "RLS_1"
+                echo "$date RLS_2: Обнаружена цель ID:$target_id с координатами $x $y" >> "$main_log"
+                source ./movementToSPRO.sh $target_id $x_1 $y_1 $x $y "RLS_2"
             fi
         fi
-    # Если количество > 1, значит две засечки уже было
-    # else
-        # echo "Цель $target_id больше не записывается"
     fi 
 }
 
 
 # Вычисляем расстояние от РЛС до точки
 distance=$(echo "sqrt(($point_x-$rls_x)^2+($point_y-$rls_y)^2)" | bc)
-# echo "$distance"
 
 # Вычисляем азимут между точкой и РЛС
 azimuth=$(echo $(atan2 $(( point_y-rls_y )) $(( point_x-rls_x ))))
@@ -91,10 +87,7 @@ fi
 
 # Проверяем, лежит ли точка в секторе обзора
 if (( $(echo "$distance <= $R" | bc -l) )) && (( $(echo "$azimuth >= $theta-$alpha/2" | bc -l) )) && (( $(echo "$azimuth <= $theta+$alpha/2" | bc -l) )); then
-# echo -e "\e[32m   Точка ($point_x, $point_y) лежит в зоне обзора РЛС_2   \e[0m"
-writeToLog
-# else
-# echo "Точка ($point_x, $point_y) не лежит в зоне обзора РЛС_2"
+    writeToLog
 fi
 
 

@@ -27,11 +27,11 @@ else
 fi
 }
 
-rls_x=3100000
-rls_y=3800000
-R=4000000
-alpha=200
-theta=135
+rls_x=6100000
+rls_y=3700000
+R=7000000
+alpha=90
+theta=270
 
 target_id=$1
 point_x=$2
@@ -40,28 +40,28 @@ point_y=$3
 
 function writeToLog {
     # Считаем количество записей цели с target_id в файле лога
-    count_of_targets=`grep -c "^.*RLS_1.*$target_id" $log_file`
+    count_of_targets=`grep -c "^.*RLS_3.*$target_id" $log_file`
 
     # Если количество = 0, значит такой цели еще не было обнаружено (ПЕРВАЯ ЗАСЕЧКА)
     if [[ $count_of_targets -eq 0 ]]
     then    
-        echo "$date RLS_1: Обнаружена цель ID:$target_id с координатами $x $y первая засечка" >> "$log_file"
+        echo "$date RLS_3: Обнаружена цель ID:$target_id с координатами $x $y первая засечка" >> "$log_file"
 
     # Если количество = 1, значит первая засечка уже была, записываем вторую (ВТОРАЯ ЗАСЕЧКА)
     elif [[ $count_of_targets -eq 1 ]]
     then
-        first_serif=`grep -E "^.*RLS_1.*$target_id.*первая засечка$" $log_file`
+        first_serif=`grep -E "^.*RLS_3.*$target_id.*первая засечка$" $log_file`
         x_1=$(echo "$first_serif" | cut -d ' ' -f 8)
         y_1=$(echo "$first_serif" | cut -d ' ' -f 9)
 
         if [ $x_1 != $x ] && [ $y_1 != $y ]; then
-            echo "$date RLS_1: Обнаружена цель ID:$target_id с координатами $x $y вторая засечка" >> "$log_file"
+            echo "$date RLS_3: Обнаружена цель ID:$target_id с координатами $x $y вторая засечка" >> "$log_file"
             speed=$(echo "sqrt(($x-$x_1)^2+($y-$y_1)^2)" | bc)
             
             # Проверяем на скорость
             if [ $speed -ge 8000 ]; then
-                echo "$date RLS_1: Обнаружена цель ID:$target_id с координатами $x $y" >> "$main_log"
-                source ./movementToSPRO.sh $target_id $x_1 $y_1 $x $y "RLS_1"
+                echo "$date RLS_3: Обнаружена цель ID:$target_id с координатами $x $y" >> "$main_log"
+                source ./movementToSPRO.sh $target_id $x_1 $y_1 $x $y "RLS_3"
             fi
         fi
     fi 

@@ -15,28 +15,13 @@ x=$2
 y=$3
 # ================================================================
 
-
-# Убираем дубли в файле с потенциально уничтоженными целями, оставляя порядок строк
-# awk '!a[$0]++' "$maybeDestroyed" > "tmp.txt"
-# if [ -f "./tmp.txt" ]; then
-#     mv "tmp.txt" "$maybeDestroyed"
-# fi
-# awk '!a[$0]++' "$maybeDestroyed" > "tmp.txt"
-# if [ -f "tmp.txt" ]; then
-#     if [ -s "$maybeDestroyed" ]; then
-#         mv "tmp.txt" "$maybeDestroyed"
-#     else
-#         cat /dev/null > "$maybeDestroyed"
-#     fi
-# fi
-
-# Функция удаления строки с определенной подстрокой из файла
+# Функция удаления строк с определенной подстрокой из файла
 function removeString {
 local substring="$1"
 local file="$2"
 
-grep -v "$substring" "$file" > "tmp1.txt"
-mv "tmp1.txt" "$file"
+grep -v "$substring" "$file" > "temp/tmp3.txt"
+mv "temp/tmp3.txt" "$file"
 }
 
 # Проверяем, была ли уничтожена цель
@@ -45,6 +30,8 @@ cat "$maybeDestroyed" | while read line; do
     if [ $isMaybeDestroyedInCurrent -eq 0 ]; then
         removeString "$line" "$maybeDestroyed"
         echo -e "\033[32m          Цель $line была уничтожена на предыдущем шаге           \033[0m"
+        echo "$date ZRDN_2: Цель ID:$line была уничтожена" >> "$log_file"
+        echo "$date ZRDN_2: Цель ID:$line УНИЧТОЖЕНА" >> "$main_log"
     fi
 done
 
@@ -77,9 +64,16 @@ if (( $(echo "$distance <= $R" | bc -l) )); then
             # Если Крылатая ракета
             if [ $speed -ge 250 ] && [ $speed -le 1000 ]; then
                 echo "$date ZRDN_2: Обнаружена цель:КрылатаяРакета ID:$target_id с координатами $x $y вторая засечка" >> "$log_file"
+                echo "$date ZRDN_2: Обнаружена цель (Крылатая ракета) ID:$target_id с координатами $x $y" >> "$main_log"
+                
+                echo "$date ZRDN_2: Производится стрельба по цели ID:$target_id" >> "$main_log"
                 source ./destroy.sh $target_id "ZRDN_2" &
+            # Если самолет
             elif [ $speed -ge 50 ] && [ $speed -le 249 ]; then
                 echo "$date ZRDN_2: Обнаружена цель:Самолет ID:$target_id с координатами $x $y вторая засечка" >> "$log_file"
+                echo "$date ZRDN_2: Обнаружена цель (Самолет) ID:$target_id с координатами $x $y" >> "$main_log"
+                
+                echo "$date ZRDN_2: Производится стрельба по цели ID:$target_id" >> "$main_log"
                 source ./destroy.sh $target_id "ZRDN_2" &
             else
                 removeString "$first_serif" "$log_file"
@@ -90,7 +84,10 @@ if (( $(echo "$distance <= $R" | bc -l) )); then
     else
         echo -e "\e[32mZRDN_2:     Цель с ID:$target_id не была уничтожена предыдущими попытками   \e[0m"
         echo "$date ZRDN_2: Стрельба по цели с ID:$target_id ПРОМАХ!" >> "$log_file"
+        echo "$date ZRDN_2: Стрельба по цели ID:$target_id ПРОМАХ!" >> "$main_log"
+
         echo -e "\e[32mZRDN_2:     Пробуем уничтожить цель с ID:$target_id еще раз      \e[0m"
+        echo "$date ZRDN_2: Повторная стрельба по цели ID:$target_id" >> "$main_log"
         source ./destroy.sh $target_id "ZRDN_2" &
     fi 
 fi
