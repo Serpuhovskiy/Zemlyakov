@@ -9,22 +9,22 @@ pi=3.14159265359
 
 # Функция арктангенса от двух параметров
 function atan2 {
-local y="$1"
-local x="$2"
+    local y="$1"
+    local x="$2"
 
-if (( x > 0 )); then
-    echo "scale=10; a($y/$x)" | bc -l
-elif (( x < 0 )) && (( y >= 0 )); then
-    echo "scale=10; a($y/$x)+3.1415926535" | bc -l
-elif (( x < 0 )) && (( y < 0 )); then
-    echo "scale=10; a($y/$x)-3.1415926535" | bc -l
-elif (( x == 0 )) && (( y > 0 )); then
-    echo "scale=10; 1.5707963268" | bc -l
-elif (( x == 0 )) && (( y < 0 )); then
-    echo "scale=10; -1.5707963268" | bc -l
-else
-    echo "scale=10; 0" | bc -l
-fi
+    if (( x > 0 )); then
+        echo "scale=10; a($y/$x)" | bc -l
+    elif (( x < 0 )) && (( y >= 0 )); then
+        echo "scale=10; a($y/$x)+3.1415926535" | bc -l
+    elif (( x < 0 )) && (( y < 0 )); then
+        echo "scale=10; a($y/$x)-3.1415926535" | bc -l
+    elif (( x == 0 )) && (( y > 0 )); then
+        echo "scale=10; 1.5707963268" | bc -l
+    elif (( x == 0 )) && (( y < 0 )); then
+        echo "scale=10; -1.5707963268" | bc -l
+    else
+        echo "scale=10; 0" | bc -l
+    fi
 }
 
 rls_x=3100000
@@ -60,8 +60,11 @@ function writeToLog {
             
             # Проверяем на скорость
             if [ $speed -ge 8000 ]; then
-                echo "$date RLS_1: Обнаружена цель ID:$target_id с координатами $x $y" >> "$main_log"
-                source ./movementToSPRO.sh $target_id $x_1 $y_1 $x $y "RLS_1"
+                
+                # Отправляем инфу на КП
+                source ./KP.sh "RLS_1" "$date" "$target_id" "Обнаружена" "$date RLS_1: Обнаружена цель ID:$target_id с координатами $x $y" 
+
+                source ./movementToSPRO.sh $target_id $x_1 $y_1 $x $y "RLS_1" &
             fi
         fi
     fi 

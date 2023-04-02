@@ -32,7 +32,9 @@ cat "$maybeDestroyed" | while read line; do
         removeString "$line" "$maybeDestroyed"
         echo -e "\033[32m          Цель $line была уничтожена на предыдущем шаге           \033[0m"
         echo "$date SPRO: Цель ID:$target_id УНИЧТОЖЕНА"
-        echo "$date SPRO: Цель ID:$line УНИЧТОЖЕНА" >> "$main_log"
+
+        # Отправляем инфу на КП
+        source ./KP.sh "SPRO" "$date" "$line" "Уничтожена" "$date SPRO: Цель ID:$line УНИЧТОЖЕНА" 
     fi
 done
 
@@ -63,8 +65,11 @@ if (( $(echo "$distance <= $R" | bc -l) )); then
             speed=$(echo "sqrt(($x-$x_1)^2+($y-$y_1)^2)" | bc)
             if [ $speed -ge 8000 ]; then
                 echo "$date SPRO: Обнаружена цель ID:$target_id с координатами $x $y вторая засечка" >> "$log_file"
-                echo "$date SPRO: Обнаружена цель (ББ БР) ID:$target_id с координатами $x $y" >> "$main_log"
-                echo "$date SPRO: Производится стрельба по цели ID:$target_id" >> "$main_log"
+                
+                # Отправляем инфу на КП
+                source ./KP.sh "SPRO" "$date" "$target_id" "Обнаружена" "$date SPRO: Обнаружена цель (ББ БР) ID:$target_id с координатами $x $y" 
+                source ./KP.sh "SPRO" "$date" "$target_id" "Выстрел" "$date SPRO: Производится стрельба по цели ID:$target_id" 
+
                 source ./destroy.sh $target_id "SPRO" &
             else
                 removeString "$first_serif" "$log_file"
@@ -75,10 +80,13 @@ if (( $(echo "$distance <= $R" | bc -l) )); then
     else
         echo -e "\e[32mSPRO:     Цель с ID:$target_id не была уничтожена предыдущими попытками   \e[0m"
         echo "$date SPRO: Стрельба по цели с ID:$target_id ПРОМАХ!" >> "$log_file"
-        echo "$date SPRO: Стрельба по цели ID:$target_id ПРОМАХ!" >> "$main_log"
+
+        # Отправляем инфу на КП
+        source ./KP.sh "SPRO" "$date" "$target_id" "Промах" "$date SPRO: Стрельба по цели ID:$target_id ПРОМАХ!" 
+        source ./KP.sh "SPRO" "$date" "$target_id" "Выстрел" "$date SPRO: Повторная стрельба по цели ID:$target_id" 
+
         echo -e "\e[32mSPRO:     Пробуем уничтожить цель с ID:$target_id еще раз      \e[0m"
         
-        echo "$date SPRO: Повторная стрельба по цели ID:$target_id" >> "$main_log"
         source ./destroy.sh $target_id "SPRO" &
     fi 
 fi

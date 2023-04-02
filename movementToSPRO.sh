@@ -10,6 +10,7 @@ x1=${2}
 y1=${3}
 x2=${4}
 y2=${5}
+system=$6
 
 # ========== Центр СПРО и радиус его обзора =====
 xc=2500000
@@ -36,7 +37,10 @@ d=$(echo "scale=6; $expr / $expr1" | bc -l)
 if [ $(echo "$d <= $R" | bc -l) -eq 1 ]; then
     if [ $distance2 -lt $distance1 ] && [ $speed -ge 8000 ]; then
         echo "$date $6: Цель ID:$target_id движется в направлении СПРО" >> "$log_file"
-        echo "$date $6: Цель ID:$target_id движется в направлении СПРО" >> "$main_log"
+
+        # Отправляем инфу на КП
+        source ./KP.sh "$system" "$date" "$target_id" "Движется в направлении СПРО" "$date $6: Цель ID:$target_id движется в направлении СПРО" 
+
         echo -e "\e[31m Объект $1 движется в направлении СПРО ($x1, $y1) ($x2, $y2) \e[0m"
     fi
 fi

@@ -2,7 +2,7 @@ gnome-terminal -e "./GenTargets.sh"
 sleep 1
 # Определяем имя файла, в который будем записывать результаты
 log_file="log.txt"
-main_log="mainLog.txt"
+main_log="logs/mainLog.txt"
 > "$log_file"
 > "$main_log"
 

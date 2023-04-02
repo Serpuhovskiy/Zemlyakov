@@ -1,3 +1,5 @@
+#!/bin/bash
+
 log_file="log.txt"
 date=`date +"%T"`
 system=$2
@@ -18,7 +20,10 @@ if [ "$num" -gt 0 ]; then
     echo "$new_num" > "bk_$system.txt"
 else
     echo "ПЕРЕЗАРЯДКА $system"
-    echo "$date $system: ПЕРЕЗАРЯДКА"
+
+    # Отправляем инфу на КП
+    source ./KP.sh $system "$date $system: ПЕРЕЗАРЯДКА" 
+
     if [ "$system" == "ZRDN_1" ] || [ "$system" == "ZRDN_2" ] || [ "$system" == "ZRDN_3" ]; then
         echo "20" > "bk_$system.txt"
     else

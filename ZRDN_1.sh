@@ -32,7 +32,9 @@ cat "$maybeDestroyed" | while read line; do
         removeString "$line" "$maybeDestroyed"
         echo -e "\033[32m          Цель $line была уничтожена на предыдущем шаге           \033[0m"
         echo "$date ZRDN_1: Цель ID:$line была уничтожена" >> "$log_file"
-        echo "$date ZRDN_1: Цель ID:$line УНИЧТОЖЕНА" >> "$main_log"
+
+        # Отправляем инфу на КП
+        source ./KP.sh "ZRDN_1" "$date" "$line" "Уничтожена" "$date ZRDN_1: Цель ID:$line УНИЧТОЖЕНА" 
     fi
 done
 
@@ -65,16 +67,20 @@ if (( $(echo "$distance <= $R" | bc -l) )); then
             # Если Крылатая ракета
             if [ $speed -ge 250 ] && [ $speed -le 1000 ]; then
                 echo "$date ZRDN_1: Обнаружена цель:КрылатаяРакета ID:$target_id с координатами $x $y вторая засечка" >> "$log_file"
-                echo "$date ZRDN_1: Обнаружена цель (Крылатая ракета) ID:$target_id с координатами $x $y" >> "$main_log"
+
+                # Отправляем инфу на КП
+                source ./KP.sh "ZRDN_1" "$date" "$target_id" "Обнаружена" "$date ZRDN_1: Обнаружена цель (Крылатая ракета) ID:$target_id с координатами $x $y" 
+                source ./KP.sh "ZRDN_1" "$date" "$target_id" "Выстрел" "$date ZRDN_1: Производится стрельба по цели ID:$target_id" 
                 
-                echo "$date ZRDN_1: Производится стрельба по цели ID:$target_id" >> "$main_log"
                 source ./destroy.sh $target_id "ZRDN_1" &
             # Если Самолет
             elif [ $speed -ge 50 ] && [ $speed -le 249 ]; then
                 echo "$date ZRDN_1: Обнаружена цель:Самолет ID:$target_id с координатами $x $y вторая засечка" >> "$log_file"
-                echo "$date ZRDN_1: Обнаружена цель (Самолет) ID:$target_id с координатами $x $y" >> "$main_log"
-                
-                echo "$date ZRDN_1: Производится стрельба по цели ID:$target_id" >> "$main_log"
+
+                # Отправляем инфу на КП
+                source ./KP.sh "ZRDN_1" "$date" "$target_id" "Обнаружена" "$date ZRDN_1: Обнаружена цель (Самолет) ID:$target_id с координатами $x $y" 
+                source ./KP.sh "ZRDN_1" "$date" "$target_id" "Выстрел" "$date ZRDN_1: Производится стрельба по цели ID:$target_id" 
+
                 source ./destroy.sh $target_id "ZRDN_1" &
             else
                 removeString "$first_serif" "$log_file"
@@ -85,10 +91,13 @@ if (( $(echo "$distance <= $R" | bc -l) )); then
     else
         echo -e "\e[32mZRDN_1:     Цель с ID:$target_id не была уничтожена предыдущими попытками   \e[0m"
         echo "$date ZRDN_1: Стрельба по цели с ID:$target_id ПРОМАХ!" >> "$log_file"
-        echo "$date ZRDN_1: Стрельба по цели ID:$target_id ПРОМАХ!" >> "$main_log"
+
+        # Отправляем инфу на КП
+        source ./KP.sh "ZRDN_1" "$date" "$target_id" "Промах" "$date ZRDN_1: Стрельба по цели ID:$target_id ПРОМАХ!" 
+        source ./KP.sh "ZRDN_1" "$date" "$target_id" "Выстрел" "$date ZRDN_1: Повторная стрельба по цели ID:$target_id" 
 
         echo -e "\e[32mZRDN_1:     Пробуем уничтожить цель с ID:$target_id еще раз      \e[0m"
-        echo "$date ZRDN_1: Повторная стрельба по цели ID:$target_id" >> "$main_log"
+
         source ./destroy.sh $target_id "ZRDN_1" &
     fi 
 fi

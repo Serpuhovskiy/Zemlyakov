@@ -60,7 +60,10 @@ function writeToLog {
             
             # Проверяем на скорость
             if [ $speed -ge 8000 ]; then
-                echo "$date RLS_2: Обнаружена цель ID:$target_id с координатами $x $y" >> "$main_log"
+
+                # Отправляем инфу на КП
+                source ./KP.sh "RLS_2" "$date" "$target_id" "Обнаружена" "$date RLS_1: Обнаружена цель ID:$target_id с координатами $x $y" 
+
                 source ./movementToSPRO.sh $target_id $x_1 $y_1 $x $y "RLS_2"
             fi
         fi
