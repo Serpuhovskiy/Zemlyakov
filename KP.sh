@@ -1,8 +1,5 @@
 #!/bin/bash
 
-# Переменная для имени базы данных
-DB_FILE="db/$system.db"
-
 # Файл главного лога
 main_log="logs/mainLog.txt"
 
@@ -11,6 +8,10 @@ system=$1
 date=$2
 target_id=$3
 action=$4
+
+
+# Переменная для имени базы данных
+DB_FILE="db/$system.db"
 
 # Сообщение, которое записываем в главный лог
 message=$5

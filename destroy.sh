@@ -17,6 +17,7 @@ if [ "$num" -gt 0 ]; then
     echo -e "$1" >> "$maybeDestroyed"
     touch "$dirname/$1"
     new_num=$((num-1))
+    echo -n > "bk_$system.txt"
     echo "$new_num" > "bk_$system.txt"
 else
     echo "ПЕРЕЗАРЯДКА $system"
@@ -25,8 +26,10 @@ else
     source ./KP.sh $system "$date $system: ПЕРЕЗАРЯДКА" 
 
     if [ "$system" == "ZRDN_1" ] || [ "$system" == "ZRDN_2" ] || [ "$system" == "ZRDN_3" ]; then
+        echo -n > "bk_$system.txt"
         echo "20" > "bk_$system.txt"
     else
-        echo "10" > "bt_$system.txt"
+        echo -n > "bk_$system.txt"
+        echo "10" > "bk_$system.txt"
     fi
 fi

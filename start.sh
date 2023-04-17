@@ -26,6 +26,22 @@ echo "20" >> "$bk_ZRDN_1"
 echo "20" >> "$bk_ZRDN_2"
 echo "20" >> "$bk_ZRDN_3"
 
+# Удаляем все базы данных
+rm db/*.db
+
+# dbs=(RLS_1 RLS_2 RLS_3 SPRO ZRDN_1 ZRDN_2 ZRDN_3)
+
+# for db in "${dbs[@]}"
+# do
+#     DB_FILE="db/$db.db"
+
+#     if [ -f "$DB_FILE" ]; then
+#         # Если база данных существует, удаляем ее
+#         echo "DB $DB_FILE DROP TABLE"
+#         sqlite3 "$DB_FILE" "DROP TABLE $db;"
+#     fi
+# done
+
 while :
 do
     filesNamesForLog=$(find /tmp/GenTargets/Targets/ -type f -printf '%T@ %p\n' | sort -n | cut -d '/' -f5- | tail -n 30)
