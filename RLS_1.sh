@@ -1,5 +1,7 @@
 #!/bin/bash
 
+touch "temp/RLS_1_active.txt"
+
 # Определяем имя файла, в который будем записывать результаты
 log_file="log.txt"
 main_log="mainLog.txt"

@@ -1,3 +1,20 @@
+
+if [[ $(id -u) -eq 0 ]]; then
+    echo "Вы не можете запускать этот скрипт с правами администратора!"
+    exit 1
+fi
+
+if [[ $(uname -s) != "Linux" ]]; then
+    echo "Этот скрипт не может быть запущен на ОС, отличающейся от Linux!"
+    exit 1
+fi
+
+if [[ $(ps -p $$ -ocomm=) != "bash" ]]; then
+    echo "Этот скрипт не может быть запущен в командном интерпретаторе отличном от Bash!"
+    exit 1
+fi
+
+
 gnome-terminal -e "./GenTargets.sh"
 sleep 1
 # Определяем имя файла, в который будем записывать результаты
@@ -29,18 +46,8 @@ echo "20" >> "$bk_ZRDN_3"
 # Удаляем все базы данных
 rm db/*.db
 
-# dbs=(RLS_1 RLS_2 RLS_3 SPRO ZRDN_1 ZRDN_2 ZRDN_3)
-
-# for db in "${dbs[@]}"
-# do
-#     DB_FILE="db/$db.db"
-
-#     if [ -f "$DB_FILE" ]; then
-#         # Если база данных существует, удаляем ее
-#         echo "DB $DB_FILE DROP TABLE"
-#         sqlite3 "$DB_FILE" "DROP TABLE $db;"
-#     fi
-# done
+# Удаляем все временные файлы
+rm temp/*.*
 
 while :
 do
@@ -73,7 +80,9 @@ do
         source ./SPRO.sh $target_id $x $y &
         # Передаем координаты ЗРДН_1
         source ./ZRDN_1.sh $target_id $x $y &
+        # Передаем координаты ЗРДН_2
         source ./ZRDN_2.sh $target_id $x $y &
+        # Передаем координаты ЗРДН_3
         source ./ZRDN_3.sh $target_id $x $y &
 
     done

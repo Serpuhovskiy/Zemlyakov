@@ -22,6 +22,8 @@ echo "=================================="
 echo "$system, $date, $target_id, $action"
 echo "=================================="
 
+gnome-terminal -e "./checkSystemPerformance.sh"
+
 # Проверяем существует ли уже база данных с таким именем
 if [ ! -f "$DB_FILE" ]; then
     # Если база данных не существует, создаем ее
